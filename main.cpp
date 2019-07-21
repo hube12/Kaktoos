@@ -8,13 +8,13 @@
 
 #define SEED_SPACE ((1LLU<<28U)-1)
 #define TRESHOLD 16
-
 #include "main.h"
 
 void crack(int thread_id,int processes){
     for (unsigned long long seed=SEED_SPACE/processes*thread_id;seed<SEED_SPACE/processes*(thread_id+1);seed++){
         if(bruteforceSeed(seed)>TRESHOLD){
             std::cout<<seed<<std::endl;
+
         }
     }
 }
@@ -166,5 +166,4 @@ int main() {
     std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(
             t2 - t1);
     std::cout<<"Done. "+std::to_string(time_span.count())+" seconds." <<std::endl;
-
 }
