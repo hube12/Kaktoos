@@ -5,10 +5,8 @@
 
 int bruteforceSeed(unsigned long long seed);
 
-void generateCactus(unsigned long long *seed, int *heightMap, int initialPosX, int initialPosY, int initialPosZ,
+void generateCactus(unsigned long long seed, int *heightMap, int initialPosX, int initialPosY, int initialPosZ,
                     int *currentHighestPos);
-
-bool isAir(const int *heightMap, int x, int y, int z);
 
 int nextInt(unsigned long long*seed, int bound);
 

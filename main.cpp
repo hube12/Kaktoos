@@ -10,7 +10,6 @@
 #define TRESHOLD 16
 
 #include "main.h"
-#include "Random.hpp"
 
 void crack(int thread_id,int processes){
     for (unsigned long long seed=SEED_SPACE/processes*thread_id;seed<SEED_SPACE/processes*(thread_id+1);seed++){
@@ -39,29 +38,40 @@ int bruteforceSeed(unsigned long long seed) {
         int terrainHeight = (heightMap[initialPosX + initialPosZ * 32] + 1) * 2;
 
         int initialPosY = nextIntUnknown(&seed, terrainHeight);
-        generateCactus(&seed, heightMap, initialPosX, initialPosY, initialPosZ, &currentHighestPos);
+        generateCactus(seed, heightMap, initialPosX, initialPosY, initialPosZ, &currentHighestPos);
     }
 
     return heightMap[currentHighestPos] - floorLevel;
 }
 
-void generateCactus(unsigned long long* seed, int* heightMap, int initialPosX, int initialPosY, int initialPosZ, int* currentHighestPos) {
+void generateCactus(unsigned long long seed, int* heightMap, int initialPosX, int initialPosY, int initialPosZ, int* currentHighestPos) {
     for(int i = 0; i < 10; i++) {
-        int posX = initialPosX + next(seed, 3) - next(seed, 3);
-        int posY = initialPosY + next(seed, 2) - next(seed, 2);
-        int posZ = initialPosZ + next(seed, 3) - next(seed, 3);
+        seed=(seed * 0x5DEECE66DLLU + 0xBLLU)& ((1LLU << 48U) - 1);
+        int posX = initialPosX +(seed>> 45u);
+        seed=(seed * 0x5DEECE66DLLU + 0xBLLU)& ((1LLU << 48U) - 1);
+        posX -= (seed>> 45u);
 
-        if(!isAir(heightMap, posX, posY, posZ))continue;
+        seed=(seed * 0x5DEECE66DLLU + 0xBLLU)& ((1LLU << 48U) - 1);
+        int posY = initialPosY +(seed>> 46u);
+        seed=(seed * 0x5DEECE66DLLU + 0xBLLU)& ((1LLU << 48U) - 1);
+        posY -= (seed>> 46u);
 
-        int offset = 1 + nextIntUnknown(seed, nextInt(seed, 3) + 1);
+        seed=(seed * 0x5DEECE66DLLU + 0xBLLU)& ((1LLU << 48U) - 1);
+        int posZ = initialPosZ +(seed>> 45u);
+        seed=(seed * 0x5DEECE66DLLU + 0xBLLU)& ((1LLU << 48U) - 1);
+        posZ -= (seed>> 45u);
+
+        if(posY<=heightMap[posX + posZ * 32])continue;
+
+        int offset = 1 + nextIntUnknown(&seed, nextInt(&seed, 3) + 1);
         int posMap = posX + posZ * 32;
 
         for(int j = 0; j < offset; j++) {
-            if(isAir(heightMap, posX, posY + j - 1, posZ))continue;
-            if(!isAir(heightMap, posX + 1, posY + j, posZ))continue;
-            if(!isAir(heightMap, posX - 1, posY + j, posZ))continue;
-            if(!isAir(heightMap, posX, posY + j, posZ + 1))continue;
-            if(!isAir(heightMap, posX, posY + j, posZ - 1))continue;
+            if( (posY + j - 1)>heightMap[posX + posZ * 32])continue;
+            if((posY + j )<=heightMap[posX+1 + posZ * 32] )continue;
+            if((posY + j)<=heightMap[posX-1 + posZ * 32])continue;
+            if((posY + j )<=heightMap[posX + (posZ+1) * 32])continue;
+            if((posY + j )<=heightMap[posX + (posZ-1) * 32])continue;
 
             heightMap[posMap]++;
 
@@ -70,16 +80,6 @@ void generateCactus(unsigned long long* seed, int* heightMap, int initialPosX, i
             }
         }
     }
-}
-
-bool isAir(const int* heightMap, int x, int y, int z) {
-    int height = heightMap[x + z * 32];
-    return y > height;
-}
-
-int next(unsigned long long* seed, int bits) {
-    *seed = (*seed * 0x5DEECE66DLLU + 0xBU) & ((1LLU << 48U) - 1);
-    return *seed >> (48U - bits);
 }
 
 int nextInt(unsigned long long* seed, int bound) {
